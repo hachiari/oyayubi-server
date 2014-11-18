@@ -3,6 +3,8 @@ var path = require('path');
 var Request = require('request');
 var ext = require('content-type-ext').ext;
 var sharp = require('sharp');
+var http = require('http');
+http.globalAgent.maxSockets = 1000;
 
 var port = 2222;
 
