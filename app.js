@@ -22,13 +22,15 @@ server.route({
   method: 'GET',
   path: '/',
   handler: function(request, reply) {
-    var url = request.query.url;
-    var dim = request.query.dim;
+    var query = request.query;
+    var url = query.url;
+    if (!url) { return reply('oyayubi server: url query is required').code(400); }
+    var dim = query.dim || '150x150';
     var dims = dim.split(/x/g);
     var fileType = getExtension(url);
     
     // unrecognized file type
-    if (!fileType) { return reply('Not found!').code(404); }
+    if (!fileType || fileType.indexOf('image') === -1) { return reply('url query is not an image').code(404); }
     
     var resizeStream = gm(Request.get(url))
       .resize(dims[0], dims[1] + "^>")
