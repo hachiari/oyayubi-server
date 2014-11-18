@@ -3,7 +3,6 @@ var path = require('path');
 var Request = require('request');
 var ext = require('content-type-ext').ext;
 var gm = require('gm');
-var bt = require('buffer-type');
 
 var port = 2222;
 
@@ -57,17 +56,14 @@ server.route([{
       var payload = request.payload;
 
       if (!payload || !Object.keys(payload).length) { return reply('oyayubi server: image streaming payload required').code(400); }
-
-      var content = bt(Buffer.concat(payload._readableState.buffer));
-      if (!content) { return reply('oyayubi server: streamed payload is not an image').code(400); }
-
-      var resizeStream = gm(payload)
+      var resizeStream = gm(request.payload)
         .resize(dims[0], dims[1] + "^>")
         .gravity('center')
         .extent(dims[0], dims[1])
-        .stream();
-
-      reply(resizeStream).type(content.type);
+        .format(function(err, format) {
+          if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
+          reply(resizeStream).type('image/'+format.toLowerCase());
+        }).stream();
     }
   }
 }]);

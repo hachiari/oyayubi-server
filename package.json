@@ -6,7 +6,6 @@
   "license": "ISC",
   "private": "true",
   "dependencies": {
-    "buffer-type": "0.0.2",
     "content-type-ext": "0.0.0",
     "gm": "^1.17.0",
     "hapi": "^7.5.2",
