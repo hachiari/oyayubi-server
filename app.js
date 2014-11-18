@@ -3,6 +3,9 @@ var path = require('path');
 var Request = require('request');
 var sharp = require('sharp');
 var http = require('http');
+var GridFS = require('GridFS').GridFS;
+var gfs = new GridFS('oyayubi');
+
 http.globalAgent.maxSockets = 1000;
 sharp.concurrency(1000);
 
@@ -10,19 +13,19 @@ var port = 2222;
 
 var server = Hapi.createServer(port);
 
-server.ext('onRequest', function(request, reply) {
-  var counters = sharp.counters();
-  var concurrency = sharp.concurrency();
-  var cache = sharp.cache();
-  console.log(counters, concurrency, cache);
-  reply();
-});
 
-var bufferCallback = function(err, buff, metadata, reply) {
-  var format = metadata.format;
+var bufferCallback = function(err, buff, contentType, reply) {
   if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
-  reply(buff).type('image/'+format.toLowerCase());
+  reply(buff).type(contentType);
 };
+
+server.ext('onRequest', function(request, reply) {
+  var query = request.query;
+  gfs.get(query.url+query.dim, function(err, data) {
+    if (err) { console.log("Error: ", err); }
+    reply(data);
+  });
+});
 
 server.route([{
   method: 'GET',
@@ -38,7 +41,11 @@ server.route([{
       .resize(Number(dims[0]), Number(dims[1]))
       .crop(sharp.gravity.north)
       .toBuffer(function(err, buff, metadata) {
-        bufferCallback(err, buff, metadata, reply);
+        var contentType = 'image/'+metadata.format;
+        gfs.put(buff, query.url+query.dim, 'w', {content_type: contentType}, function(err){
+          if(err) console.log(err);
+          bufferCallback(err, buff, contentType, reply);
+        });
       });
     Request.get(url).pipe(sharpStream);
   }
@@ -52,17 +59,18 @@ server.route([{
       parse: false,
     },
     handler: function(request, reply) {
+      // no gridfs cache because query.url can be localhost
       var query = request.query;
       var dim = query.dim || '150x150';
       var dims = dim.split(/x/g);
       var payload = request.payload;
       if (!payload || !Object.keys(payload).length) { return reply('oyayubi server: image streaming payload required').code(400); }
-      
       var sharpStream = sharp()
         .resize(Number(dims[0]), Number(dims[1]))
         .crop(sharp.gravity.north)
         .toBuffer(function(err, buff, metadata) {
-          bufferCallback(err, buff, metadata, reply);
+          var contentType = 'image/'+metadata.format;
+          bufferCallback(err, buff, contentType, reply);
         });
       payload.pipe(sharpStream);
     }
