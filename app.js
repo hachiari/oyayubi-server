@@ -32,7 +32,7 @@ server.route([{
     var dims = dim.split(/x/g);
 
     var sharpStream = sharp()
-      .resize(Number(dims[0]), Number(dims[1]))
+      .resize(Number(dims[0])*2, Number(dims[1])*2)
       .crop(sharp.gravity.north)
       .toBuffer(function(err, buff, metadata) {
         var format = metadata.format;
@@ -62,7 +62,7 @@ server.route([{
       var payload = request.payload;
       if (!payload || !Object.keys(payload).length) { return reply('oyayubi server: image streaming payload required').code(400); }
       var sharpStream = sharp()
-        .resize(Number(dims[0]), Number(dims[1]))
+        .resize(Number(dims[0])*2, Number(dims[1])*2)
         .crop(sharp.gravity.north)
         .toBuffer(function(err, buff, metadata) {
           var format = metadata.format;
