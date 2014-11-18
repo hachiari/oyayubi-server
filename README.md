@@ -6,6 +6,7 @@ oyayubi-server
 ```
 curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash -
 ```
+2. MongoDB GridFS
 
 ## image thumbnail server
 
