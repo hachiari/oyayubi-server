@@ -33,8 +33,7 @@ server.route([{
     if (!fileType || fileType.indexOf('image') === -1) { return reply('url query is not an image').code(404); }
     var sharpStream = sharp()
       .resize(Number(dims[0]), Number(dims[1]))
-      .crop(sharp.gravity.north)
-      .compressionLevel(9);
+      .crop(sharp.gravity.north);
     var resizeStream = Request.get(url).pipe(sharpStream);
     reply(resizeStream).type(fileType);
   }
@@ -57,7 +56,6 @@ server.route([{
       var sharpStream = sharp()
         .resize(Number(dims[0]), Number(dims[1]))
         .crop(sharp.gravity.north)
-        .compressionLevel(9)
         .toBuffer(function(err, buff, metadata) {
           var format = metadata.format;
           if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
