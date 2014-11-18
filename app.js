@@ -13,12 +13,6 @@ var port = 2222;
 
 var server = Hapi.createServer(port);
 
-
-var bufferCallback = function(err, buff, contentType, reply) {
-  if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
-  reply(buff).type(contentType);
-};
-
 server.ext('onRequest', function(request, reply) {
   var query = request.query;
   gfs.get(query.url+query.dim, function(err, data) {
@@ -41,10 +35,12 @@ server.route([{
       .resize(Number(dims[0]), Number(dims[1]))
       .crop(sharp.gravity.north)
       .toBuffer(function(err, buff, metadata) {
-        var contentType = 'image/'+metadata.format;
+        var format = metadata.format;
+        if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
+        var contentType = 'image/'+format;
         gfs.put(buff, query.url+query.dim, 'w', {content_type: contentType}, function(err){
           if(err) console.log(err);
-          bufferCallback(err, buff, contentType, reply);
+          reply(buff).type(contentType);
         });
       });
     Request.get(url).pipe(sharpStream);
@@ -69,8 +65,10 @@ server.route([{
         .resize(Number(dims[0]), Number(dims[1]))
         .crop(sharp.gravity.north)
         .toBuffer(function(err, buff, metadata) {
-          var contentType = 'image/'+metadata.format;
-          bufferCallback(err, buff, contentType, reply);
+          var format = metadata.format;
+          if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
+          var contentType = 'image/'+format;
+          reply(buff).type(contentType);
         });
       payload.pipe(sharpStream);
     }
