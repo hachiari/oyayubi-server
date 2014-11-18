@@ -24,6 +24,14 @@ var getExtension = function(url) {
   return ext.getContentType(extensions[1]);
 };
 
+server.ext('onRequest', function(request, reply) {
+  var counters = sharp.counters();
+  var concurrency = sharp.concurrency();
+  var cache = sharp.cache();
+  console.log(counters, concurrency, cache);
+  reply();
+});
+
 server.route([{
   method: 'GET',
   path: '/',
