@@ -2,7 +2,7 @@ var Hapi = require('hapi');
 var path = require('path');
 var Request = require('request');
 var ext = require('content-type-ext').ext;
-var gm = require('gm');
+var sharp = require('sharp');
 
 var port = 2222;
 
@@ -31,13 +31,11 @@ server.route([{
 
     // unrecognized file type
     if (!fileType || fileType.indexOf('image') === -1) { return reply('url query is not an image').code(404); }
-
-    var resizeStream = gm(Request.get(url))
-      .resize(dims[0], dims[1] + "^>")
-      .gravity('center')
-      .extent(dims[0], dims[1])
-      .stream();
-
+    var sharpStream = sharp()
+      .resize(Number(dims[0]), Number(dims[1]))
+      .crop(sharp.gravity.north)
+      .compressionLevel(9);
+    var resizeStream = Request.get(url).pipe(sharpStream);
     reply(resizeStream).type(fileType);
   }
 }, {
@@ -45,7 +43,7 @@ server.route([{
   path: '/{dim}',
   config: {
     payload: {
-      maxBytes:209715200,
+      maxBytes: 209715200,
       output: 'stream',
       parse: true,
     },
@@ -54,16 +52,18 @@ server.route([{
       var dim = params.dim || '150x150';
       var dims = dim.split(/x/g);
       var payload = request.payload;
-
       if (!payload || !Object.keys(payload).length) { return reply('oyayubi server: image streaming payload required').code(400); }
-      var resizeStream = gm(request.payload)
-        .resize(dims[0], dims[1] + "^>")
-        .gravity('center')
-        .extent(dims[0], dims[1])
-        .format(function(err, format) {
+      
+      var sharpStream = sharp()
+        .resize(Number(dims[0]), Number(dims[1]))
+        .crop(sharp.gravity.north)
+        .compressionLevel(9)
+        .toBuffer(function(err, buff, metadata) {
+          var format = metadata.format;
           if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
-          reply(resizeStream).type('image/'+format.toLowerCase());
-        }).stream();
+          reply(buff).type('image/'+format.toLowerCase());
+        });
+      payload.pipe(sharpStream);
     }
   }
 }]);
