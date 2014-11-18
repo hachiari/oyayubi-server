@@ -16,7 +16,7 @@ var server = Hapi.createServer(port);
 server.ext('onRequest', function(request, reply) {
   var query = request.query;
   gfs.get(query.url+query.dim, function(err, data) {
-    if (err) { console.log("Error: ", err); }
+    if (err) { return reply(); }
     reply(data);
   });
 });
