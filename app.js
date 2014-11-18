@@ -32,8 +32,9 @@ server.route([{
     var dims = dim.split(/x/g);
 
     var sharpStream = sharp()
-      .resize(Number(dims[0])*2, Number(dims[1])*2)
+      .resize(Number(dims[0]), Number(dims[1]))
       .crop(sharp.gravity.north)
+      .quality(90)
       .toBuffer(function(err, buff, metadata) {
         var format = metadata.format;
         if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
@@ -62,8 +63,9 @@ server.route([{
       var payload = request.payload;
       if (!payload || !Object.keys(payload).length) { return reply('oyayubi server: image streaming payload required').code(400); }
       var sharpStream = sharp()
-        .resize(Number(dims[0])*2, Number(dims[1])*2)
+        .resize(Number(dims[0]), Number(dims[1]))
         .crop(sharp.gravity.north)
+        .quality(90)
         .toBuffer(function(err, buff, metadata) {
           var format = metadata.format;
           if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
