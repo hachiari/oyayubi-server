@@ -1,7 +1,6 @@
 var Hapi = require('hapi');
 var path = require('path');
 var Request = require('request');
-var ext = require('content-type-ext').ext;
 var sharp = require('sharp');
 var http = require('http');
 http.globalAgent.maxSockets = 1000;
@@ -10,19 +9,6 @@ sharp.concurrency(1000);
 var port = 2222;
 
 var server = Hapi.createServer(port);
-var server = Hapi.createServer(port, {
-  maxSockets: 1000
-});
-
-var getExtension = function(url) {
-  // get file extension from url with querystring or &, ?, # tail
-  // eg test.jpg&, test.jpg?, test.jpg# -> ['.jpg#', '.jpg']
-
-  var getExtensionRegex = /\.([0-9a-z]+)(?:[\&?#]|$)/i;
-  var extensions = url.toString().match(getExtensionRegex);
-  if (!extensions) { return; }
-  return ext.getContentType(extensions[1]);
-};
 
 server.ext('onRequest', function(request, reply) {
   var counters = sharp.counters();
@@ -31,6 +17,12 @@ server.ext('onRequest', function(request, reply) {
   console.log(counters, concurrency, cache);
   reply();
 });
+
+var bufferCallback = function(err, buff, metadata, reply) {
+  var format = metadata.format;
+  if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
+  reply(buff).type('image/'+format.toLowerCase());
+};
 
 server.route([{
   method: 'GET',
@@ -41,28 +33,27 @@ server.route([{
     if (!url) { return reply('oyayubi server: url query is required').code(400); }
     var dim = query.dim || '150x150';
     var dims = dim.split(/x/g);
-    var fileType = getExtension(url);
 
-    // unrecognized file type
-    if (!fileType || fileType.indexOf('image') === -1) { return reply('url query is not an image').code(404); }
     var sharpStream = sharp()
       .resize(Number(dims[0]), Number(dims[1]))
-      .crop(sharp.gravity.north);
-    var resizeStream = Request.get(url).pipe(sharpStream);
-    reply(resizeStream).type(fileType);
+      .crop(sharp.gravity.north)
+      .toBuffer(function(err, buff, metadata) {
+        bufferCallback(err, buff, metadata, reply);
+      });
+    Request.get(url).pipe(sharpStream);
   }
 }, {
   method: 'POST',
-  path: '/{dim}',
+  path: '/',
   config: {
     payload: {
       maxBytes: 209715200,
       output: 'stream',
-      parse: true,
+      parse: false,
     },
     handler: function(request, reply) {
-      var params = request.params;
-      var dim = params.dim || '150x150';
+      var query = request.query;
+      var dim = query.dim || '150x150';
       var dims = dim.split(/x/g);
       var payload = request.payload;
       if (!payload || !Object.keys(payload).length) { return reply('oyayubi server: image streaming payload required').code(400); }
@@ -71,9 +62,7 @@ server.route([{
         .resize(Number(dims[0]), Number(dims[1]))
         .crop(sharp.gravity.north)
         .toBuffer(function(err, buff, metadata) {
-          var format = metadata.format;
-          if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
-          reply(buff).type('image/'+format.toLowerCase());
+          bufferCallback(err, buff, metadata, reply);
         });
       payload.pipe(sharpStream);
     }
