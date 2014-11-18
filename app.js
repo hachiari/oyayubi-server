@@ -5,6 +5,7 @@ var ext = require('content-type-ext').ext;
 var sharp = require('sharp');
 var http = require('http');
 http.globalAgent.maxSockets = 1000;
+sharp.concurrency(1000);
 
 var port = 2222;
 
