@@ -1,0 +1,14 @@
+{
+  "name": "oyayubi-server",
+  "version": "0.0.1",
+  "main": "app.js",
+  "author": "beeant",
+  "license": "ISC",
+  "private": "true",
+  "dependencies": {
+    "content-type-ext": "0.0.0",
+    "gm": "^1.17.0",
+    "hapi": "^7.5.2",
+    "request": "^2.48.0"
+  }
+}
