@@ -7,6 +7,9 @@ var sharp = require('sharp');
 var port = 2222;
 
 var server = Hapi.createServer(port);
+var server = Hapi.createServer(port, {
+  maxSockets: 1000
+});
 
 var getExtension = function(url) {
   // get file extension from url with querystring or &, ?, # tail
