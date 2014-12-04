@@ -71,7 +71,6 @@ server.route([{
         .autoOrient()
         .format(function(err, format) {
           if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
-          if (format === 'jpeg') { format = 'jpg'; }
           var contentType = 'image/'+format.toLowerCase();
           reply(gmStream).type(contentType);
         }).stream();
