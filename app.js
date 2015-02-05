@@ -42,7 +42,6 @@ server.route([{
       .autoOrient()
       .stream();
     var contentType = mime.lookup(url);
-    console.log(contentType);
     if (!contentType) { return reply('oyayubi server: streamed payload is not an image').code(400); }
     var w = GridStream.createGridWriteStream('oyayubi', query.url+query.dim, 'w', {content_type: contentType});
     gmStream.pipe(w);
@@ -73,7 +72,6 @@ server.route([{
         .format(function(err, format) {
           if (err || !format) { return reply('oyayubi server: streamed payload is not an image').code(400); }
           var contentType = 'image/'+format.toLowerCase();
-          console.log(contentType);
           reply(gmStream).type(contentType);
         }).stream();
     }
