@@ -2,10 +2,6 @@ oyayubi-server
 ==============
 ## Dependencies
 
-- install vips (reference: https://github.com/lovell/sharp)
-```
-curl -s https://raw.githubusercontent.com/lovell/sharp/master/preinstall.sh | bash -
-```
 - MongoDB GridFS
 
 ## image thumbnail server
