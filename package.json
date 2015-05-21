@@ -7,9 +7,9 @@
   "private": "true",
   "dependencies": {
     "GridFS": "^0.3.0",
-    "gm": "^1.17.0",
-    "hapi": "^7.5.2",
-    "mime-types": "^2.0.3",
-    "request": "^2.49.0"
+    "gm": "^1.18.1",
+    "hapi": "^7.5.3",
+    "mime-types": "^2.0.12",
+    "request": "^2.55.0"
   }
 }
