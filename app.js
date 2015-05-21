@@ -17,7 +17,7 @@ server.connection({ port: port});
 server.ext('onRequest', function(request, reply) {
   var query = request.query;
   gfs.get(query.url+query.dim, function(err, data) {
-    if (err) { return reply(); }
+    if (err) { return reply.continue(); }
     var stream = GridStream.createGridReadStream('oyayubi', query.url+query.dim);
     var contentType = mime.lookup(query.url);
     reply(stream).type(contentType);
