@@ -8,11 +8,11 @@ var gfs = new GridFS('oyayubi');
 var GridStream = require('GridFS').GridStream;
 var mime = require('mime-types');
 
-http.globalAgent.maxSockets = 1000;
+http.globalAgent.maxSockets = Infinity;
 
 var port = 2222;
-
-var server = Hapi.createServer(port);
+var server = new Hapi.Server();
+server.connection({ port: port});
 
 server.ext('onRequest', function(request, reply) {
   var query = request.query;
