@@ -3,22 +3,33 @@ var path = require('path');
 var Request = require('request');
 var gm = require('gm');
 var http = require('http');
-var GridFS = require('bn-gridfs').GridFS;
+
+// GFS
 var gfs = new GridFS('oyayubi');
-var GridStream = require('bn-gridfs').GridStream;
+var mongoose = require('mongoose');
+var Schema = mongoose.Schema;
+mongoose.connect('mongodb://127.0.0.1/oyayubi');
+var conn = mongoose.connection;
+var Grid = require('gridfs-stream');
+Grid.mongo = mongoose.mongo;
+var gfs = null;
+conn.once('open', function () {
+  console.log('connected to mongodb');
+  gfs = Grid(conn.db);
+});
+
 var mime = require('mime-types');
 
 http.globalAgent.maxSockets = Infinity;
-
 var port = 2222;
 var server = new Hapi.Server();
 server.connection({ port: port});
 
 server.ext('onRequest', function(request, reply) {
   var query = request.query;
-  gfs.get(query.url+query.dim, function(err, data) {
+  gfs.exist({filename:query.url+query.dim}, function(err, data) {
     if (err) { return reply.continue(); }
-    var stream = GridStream.createGridReadStream('oyayubi', query.url+query.dim);
+    var stream = gfs.createReadStream({filename: query.url+query.dim});
     var contentType = mime.lookup(query.url);
     reply(stream).type(contentType);
   });
@@ -43,7 +54,7 @@ server.route([{
       .stream();
     var contentType = mime.lookup(url);
     if (!contentType) { return reply('oyayubi server: streamed payload is not an image').code(400); }
-    var w = GridStream.createGridWriteStream('oyayubi', query.url+query.dim, 'w', {content_type: contentType});
+    var w = gfs.createWriteStream({filename: query.url+query.dim, mode: 'w', content_type: contentType});
     gmStream.pipe(w);
     reply(gmStream).type(contentType);
   }
