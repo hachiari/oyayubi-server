@@ -7,6 +7,7 @@
   "private": "true",
   "dependencies": {
     "GridFS": "^0.3.0",
+    "bn-gridfs": "0.0.1",
     "gm": "^1.18.1",
     "hapi": "^8.4.0",
     "mime-types": "^2.0.12",

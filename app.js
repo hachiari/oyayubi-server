@@ -3,9 +3,9 @@ var path = require('path');
 var Request = require('request');
 var gm = require('gm');
 var http = require('http');
-var GridFS = require('GridFS').GridFS;
+var GridFS = require('bn-gridfs').GridFS;
 var gfs = new GridFS('oyayubi');
-var GridStream = require('GridFS').GridStream;
+var GridStream = require('bn-gridfs').GridStream;
 var mime = require('mime-types');
 
 http.globalAgent.maxSockets = Infinity;
