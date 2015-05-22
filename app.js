@@ -5,7 +5,6 @@ var gm = require('gm');
 var http = require('http');
 
 // GFS
-var gfs = new GridFS('oyayubi');
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 mongoose.connect('mongodb://127.0.0.1/oyayubi');
