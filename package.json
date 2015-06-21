@@ -8,9 +8,9 @@
   "dependencies": {
     "gm": "^1.18.1",
     "gridfs-stream": "^1.1.1",
-    "hapi": "^8.5.0",
-    "mime-types": "^2.0.12",
-    "mongoose": "^4.0.3",
-    "request": "^2.55.0"
+    "hapi": "^8.6.1",
+    "mime-types": "^2.1.1",
+    "mongoose": "^4.0.5",
+    "request": "^2.58.0"
   }
 }

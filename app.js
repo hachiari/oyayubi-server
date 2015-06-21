@@ -26,15 +26,27 @@ server.connection({ port: port});
 
 server.ext('onRequest', function(request, reply) {
   var query = request.query;
-  gfs.exist({filename:query.url+query.dim}, function(err, found) {
-    if (err || !found) { return reply.continue(); }
-    var stream = gfs.createReadStream({filename: query.url+query.dim});
-    var contentType = mime.lookup(query.url);
-    reply(stream).type(contentType);
+  if (!Object.keys(query).length) { return reply.continue(); }
+  gfs.files.find({filename:query.url+query.dim}).toArray(function(err, found) {
+    if (err || !found || !found.length) { return reply.continue(); }
+    found = found[0];
+    var extension = mime.extension(found.contentType);
+    extension = (extension === "jpeg") ? "jpg" : extension;
+    reply.redirect("/images/"+found._id+"."+extension);
   });
 });
 
 server.route([{
+  method: "GET",
+  path: "/images/{_id}",
+  handler: function(request, reply) {
+    var params = request.params._id.split(".");
+    gfs.findOne({_id: params[0]}, function(err, found) {
+      var stream = gfs.createReadStream({filename: found.filename});
+      reply(stream).type(found.contentType);
+    });
+  }
+}, {
   method: 'GET',
   path: '/',
   handler: function(request, reply) {
