@@ -32,7 +32,7 @@ server.ext('onRequest', function(request, reply) {
     found = found[0];
     var extension = mime.extension(found.contentType);
     extension = (extension === "jpeg") ? "jpg" : extension;
-    reply.redirect("/images/"+found._id+"."+extension);
+    reply.redirect("/images/"+found._id+"."+extension).premanent(true);
   });
 });
 
